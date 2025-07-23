@@ -1,30 +1,23 @@
-name: "Flutter Build & Release"
+name: Flutter CI
 
 on:
   push:
-    branches:
-      - main
-      - master
-      - develop
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [ main ]
 
 jobs:
   build:
-    name: Build & Release
     runs-on: macos-latest
+
+    env:
+      PUB_CACHE: /home/runner/.pub-cache
+      FLUTTER_HOME: /opt/hostedtoolcache/flutter
+      PATH: /opt/hostedtoolcache/flutter/bin:$PATH
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up Java (for Android build)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -32,28 +25,17 @@ jobs:
           channel: stable
           architecture: x64
 
-      - name: Flutter doctor (ensure environment is ready)
+      - name: Force Flutter context
+        run: flutter --version
+
+      - name: Flutter doctor
         run: flutter doctor
 
-      - name: Install dependencies
+      - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Android APK (split-per-ABI)
-        run: flutter build apk --release --split-per-abi
+      - name: Analyze project
+        run: flutter analyze
 
-      - name: Build iOS (no code signing)
-        run: |
-          flutter build ios --release --no-codesign
-          cd build/ios/iphoneos
-          mkdir Payload
-          cp -r Runner.app Payload/
-          zip -r app.ipa Payload
-
-      - name: Upload to GitHub Releases
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: |
-            build/app/outputs/apk/release/*.apk,
-            build/ios/iphoneos/app.ipa
-          tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.TOKEN }}
+      - name: Run tests
+        run: flutter test
