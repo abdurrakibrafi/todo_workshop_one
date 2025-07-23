@@ -10,11 +10,6 @@ jobs:
   build:
     runs-on: macos-latest
 
-    env:
-      PUB_CACHE: /home/runner/.pub-cache
-      FLUTTER_HOME: /opt/hostedtoolcache/flutter
-      PATH: /opt/hostedtoolcache/flutter/bin:$PATH
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,19 +18,18 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          architecture: x64
 
-      - name: Force Flutter context
+      - name: Check Flutter version
         run: flutter --version
 
-      - name: Flutter doctor
-        run: flutter doctor
-
-      - name: Get dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze project
+      - name: Analyze code
         run: flutter analyze
 
       - name: Run tests
         run: flutter test
+
+      - name: Build APK
+        run: flutter build apk --release
