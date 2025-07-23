@@ -32,6 +32,9 @@ jobs:
           channel: stable
           architecture: x64
 
+      - name: Flutter doctor (ensure environment is ready)
+        run: flutter doctor
+
       - name: Install dependencies
         run: flutter pub get
 
